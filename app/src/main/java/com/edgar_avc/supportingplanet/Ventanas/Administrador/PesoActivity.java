@@ -21,6 +21,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.Random;
+
 public class PesoActivity extends AppCompatActivity {
 
     private ImageView iv_peso;
@@ -47,16 +49,20 @@ public class PesoActivity extends AppCompatActivity {
             DatabaseReference bbdd = FirebaseDatabase.getInstance().getReference("VALORES");
             bbdd.child("PESANDO").setValue("TRUE");
 
-            DatabaseReference bdPeso = FirebaseDatabase.getInstance().getReference("VALORES");
-            bdPeso.addValueEventListener(new ValueEventListener() {
+            bbdd.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    Log.d("salida", "ENTRO: "+dataSnapshot.toString());
                     Valores valores = dataSnapshot.getValue(Valores.class);
                     if(valores.getPESANDO().equals("FALSE"))
                     {
-                        tv_peso.setText("Peso: " + valores.getPESO() + "kg");
-                        dialog.dismiss();
-                        temporizador();
+                        if( esNumerico( valores.getPESO() ) )
+                        {
+                            tv_peso.setText("Peso: " + valores.getPESO() + "kg");
+                            dialog.dismiss();
+                            temporizador();
+                        }
                     }
                 }
 
@@ -68,9 +74,23 @@ public class PesoActivity extends AppCompatActivity {
         }
         else
         {
+
+            final ProgressDialog dialog = ProgressDialog.show(PesoActivity.this, "Calculando estatura", "No se mueva", true);
+
             iv_peso.setImageResource(R.drawable.estatura1);
-            tv_peso.setText("Estatura: 1.70m");
-            temporizador();
+
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    String estaturas[] = {"1.65","1.70","1.72","1.68","1.60"};
+                    Random random = new Random();
+                    String estatura = estaturas[ random.nextInt( estaturas.length ) ];
+                    tv_peso.setText("Estatura: "+estatura+"m");
+                    dialog.dismiss();
+                    temporizador();
+                }
+            }, 3000);
         }
 
     }
@@ -86,6 +106,18 @@ public class PesoActivity extends AppCompatActivity {
                 finish();
             }
         }, 4500);
+    }
+
+    public boolean esNumerico(String valor)
+    {
+        try{
+            Double x = Double.parseDouble(valor);
+            return true;
+        }catch (Exception e)
+        {
+            return false;
+        }
+
     }
 
 }
