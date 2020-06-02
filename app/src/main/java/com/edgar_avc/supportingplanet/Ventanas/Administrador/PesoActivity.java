@@ -1,13 +1,18 @@
 package com.edgar_avc.supportingplanet.Ventanas.Administrador;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.edgar_avc.supportingplanet.Model.Usuario;
+import com.edgar_avc.supportingplanet.Model.Valores;
 import com.edgar_avc.supportingplanet.R;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,10 +37,34 @@ public class PesoActivity extends AppCompatActivity {
         iv_peso = findViewById(R.id.iv_peso);
         tv_peso = findViewById(R.id.tv_peso);
 
+
         if(clave==1)
         {
+            iv_peso.setImageResource(R.drawable.peso1);
+
+            final ProgressDialog dialog = ProgressDialog.show(PesoActivity.this, "Calculando peso", "Colóquese sobre la bascula", true);
+
             DatabaseReference bbdd = FirebaseDatabase.getInstance().getReference("VALORES");
             bbdd.child("PESANDO").setValue("TRUE");
+
+            DatabaseReference bdPeso = FirebaseDatabase.getInstance().getReference("VALORES");
+            bdPeso.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Valores valores = dataSnapshot.getValue(Valores.class);
+                    if(valores.getPESANDO().equals("FALSE"))
+                    {
+                        tv_peso.setText("Peso: " + valores.getPESO() + "kg");
+                        dialog.dismiss();
+                        temporizador();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         }
         else
         {
